@@ -4,29 +4,52 @@ import { useState, useEffect, useRef } from 'react'
 
 import supabase from "../utils/initSupabase";
 
-export default function Home({todos}) {
+export default function Home() {
+  const [todos, setTodos] = useState(null);
+  const [isLoading, setLoading] = useState(false)
+
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
 
+  // Load inital Data
+  useEffect(() => {
+
+    const fetchData = async () => {
+        const res = await supabase.from("todos").select("id, title, completed");
+        const todos = await res.data;
+        setTodos(todos)
+    }
+      // call the function
+      fetchData()
+      // make sure to catch any error
+      .catch(console.error);
+    
+  }, [isLoading])
+
   // Update ToDo (completed state)
   const handleComplete = async (id, completed) => {
+    setLoading(true)
     await supabase.from("todos").update( { completed: !completed }).match({ id: id });
-    router.replace(router.asPath);
+    setLoading(false)
   }
   
   // Delete Todo
   const handleDelete = async (id) => {
+    setLoading(true)
     await supabase.from("todos").delete().match({ id: id });
     router.replace(router.asPath);
+    setLoading(false)
   }
 
   // form has been submitted
   const handleNewTodo = async (data) => {
     setBusy(true);
+    setLoading(true);
     await supabase.from("todos").insert([{ title: data.todo }]);
-    await router.replace(router.asPath);
+    router.replace(router.asPath);
     setBusy(false);
+    setLoading(false);
   }
 
   // Reset the form to a blank state when the form is submitted
@@ -39,9 +62,9 @@ export default function Home({todos}) {
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4", maxWidth: "800px", marginLeft:'auto', marginRight: "auto" }}>
-      <h1>My Great Todos</h1>
+      <h1>My Great Todos {isLoading ? "...Loading" : ""}</h1>
       <ul className="todo-list" style={{dispay:"flex", flexDirection:"column", padding:0 }}>
-        {todos.map((todo) => (
+        {todos && todos.map((todo) => (
           <li key={todo.id}
             style={{
               display: "flex",
@@ -78,17 +101,17 @@ export default function Home({todos}) {
 // This function gets called at build time on server-side.
 // It won't be called on client-side, so you can even do
 // direct database queries.
-export async function getStaticProps() {
-  // Call an external API endpoint to get posts.
-  // You can use any data fetching library
-  const res = await supabase.from("todos").select("id, title, completed");
-  const todos = await res.data;
+// export async function getStaticProps() {
+//   // Call an external API endpoint to get posts.
+//   // You can use any data fetching library
+//   const res = await supabase.from("todos").select("id, title, completed");
+//   const todos = await res.data;
 
-  // By returning { props: { posts } }, the Blog component
-  // will receive `posts` as a prop at build time
-  return {
-    props: {
-      todos,
-    },
-  }
-}
+//   // By returning { props: { posts } }, the Blog component
+//   // will receive `posts` as a prop at build time
+//   return {
+//     props: {
+//       todos,
+//     },
+//   }
+// }
