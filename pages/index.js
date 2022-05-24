@@ -39,7 +39,7 @@ export default function Home({todos}) {
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4", maxWidth: "800px", marginLeft:'auto', marginRight: "auto" }}>
-      <h1>My Todos</h1>
+      <h1>My Great Todos</h1>
       <ul className="todo-list" style={{dispay:"flex", flexDirection:"column", padding:0 }}>
         {todos.map((todo) => (
           <li key={todo.id}
